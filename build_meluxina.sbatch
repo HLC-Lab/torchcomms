@@ -1,13 +1,12 @@
-# build.sbatch
-#!/bin/bash
+#!/bin/bash -l
 #SBATCH --job-name=torchcomms_build
+#SBATCH --account=p201236
 #SBATCH --output=logs/build_%j.log
 #SBATCH --error=logs/build_%j.err
 #SBATCH --partition=gpu
 #SBATCH --nodes=1
-#SBATCH --ntasks=1
 #SBATCH --gpus-per-node=1
-#SBATCH --time=04:00:00
+#SBATCH --time=01:00:00
 
 set -euo pipefail
 
@@ -18,11 +17,18 @@ module load CUDA/12.8.0
 module load CMake/3.31.3-GCCcore-14.2.0
 module load Ninja/1.12.1-GCCcore-14.2.0
 
-source activate torchcomms
+CONDA_ENV_PATH="/project/home/p201236/conda_envs/torchcomms"
+source activate "$CONDA_ENV_PATH"
+export CONDA_PREFIX="$CONDA_ENV_PATH"
 
-export CUDA_HOME="${CUDA_ROOT:-/usr/local/cuda}"
+export CUDA_HOME="${CUDA_ROOT}"
 export NVCC_ARCH="a100"
-export BUILDDIR="$HOME/torchcomms/build/ncclx"
+export TORCH_CUDA_ARCH_LIST="8.0" # Matches a100
+export BUILDDIR="/project/home/p201236/build/ncclx"
+export PIP_CACHE_DIR="/project/home/p201236/.cache/pip"
+
+rm -rf "$BUILDDIR"
+mkdir -p "$BUILDDIR" "$PIP_CACHE_DIR"
 
 REPO_DIR="$HOME/torchcomms"
 cd "$REPO_DIR"
