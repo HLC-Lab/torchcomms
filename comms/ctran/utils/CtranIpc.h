@@ -10,10 +10,8 @@
 #include "comms/ctran/utils/DevMemType.h"
 #include "comms/utils/commSpecs.h"
 
-// TODO: remove this once we have a more portable way for CTRAN IPC
-#if (defined(SYS_pidfd_open) && defined(SYS_pidfd_getfd))
+// XXX: removed kernel >= 5.6 guards
 #define IS_CTRAN_IPC_SUPPORTED
-#endif
 
 struct CommLogData;
 

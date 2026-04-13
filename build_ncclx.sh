@@ -7,6 +7,11 @@ function do_cmake_build() {
   local source_dir="$1"
   local extra_flags="$2"
   cmake -G Ninja \
+    -DCMAKE_MAKE_PROGRAM=$(which ninja) \
+    -DCMAKE_CXX_COMPILER=$(which g++) \
+    -DCMAKE_C_COMPILER=$(which gcc) \
+    -DCMAKE_EXE_LINKER_FLAGS="-ldl" \
+    -DCMAKE_SHARED_LINKER_FLAGS="-ldl" \
     -DCMAKE_PREFIX_PATH="$CMAKE_PREFIX_PATH" \
     -DCMAKE_INSTALL_PREFIX="$CMAKE_PREFIX_PATH" \
     -DCMAKE_MODULE_PATH="$CMAKE_PREFIX_PATH" \
@@ -134,8 +139,8 @@ function build_third_party {
   fi
   local third_party_tag="v2026.01.19.00"
 
-  mkdir -p /tmp/third-party
-  pushd /tmp/third-party
+  mkdir -p ~/tmp/third-party
+  pushd ~/tmp/third-party
   if [[ -z "${USE_SYSTEM_LIBS}" ]]; then
     build_fb_oss_library "https://github.com/fmtlib/fmt.git" "11.2.0" fmt "-DFMT_INSTALL=ON -DFMT_TEST=OFF -DFMT_DOC=OFF"
     build_fb_oss_library "https://github.com/fmtlib/fmt.git" "11.2.0" fmt "-DFMT_INSTALL=ON -DFMT_TEST=OFF -DFMT_DOC=OFF -DBUILD_SHARED_LIBS=ON"
@@ -200,7 +205,7 @@ function build_third_party {
 function build_comms_tracing_service {
   local include_prefix="comms/analyzer/if"
   local base_dir="${PWD}"
-  local build_dir=/tmp/build/comms_tracing_service
+  local build_dir=~/tmp/build/comms_tracing_service
 
   mkdir -p "$build_dir"
   pushd "$build_dir"
@@ -210,7 +215,7 @@ function build_comms_tracing_service {
   mv "$include_prefix"/CMakeLists.txt .
 
   # set up the build config
-  cp -r /tmp/third-party/thrift/build .
+  cp -r ~/tmp/third-party/thrift/build .
 
   # build the thrift service library
   cd build
@@ -336,9 +341,9 @@ THRIFT_SERVICE_LDFLAGS+=(
 THIRD_PARTY_LDFLAGS+="${THRIFT_SERVICE_LDFLAGS[*]} "
 THIRD_PARTY_LDFLAGS+="$(pkg-config --libs --static libfolly) "
 if [[ -z "${USE_SYSTEM_LIBS}" ]]; then
-  THIRD_PARTY_LDFLAGS+="-l:libglog.a -l:libgflags.a -l:libboost_context.a -l:libfmt.a -l:libssl.a -l:libcrypto.a"
+  THIRD_PARTY_LDFLAGS+="-l:libglog.a -l:libgflags.a -l:libboost_context.a -l:libfmt.a -l:libssl.a -l:libcrypto.a -ldl"
 else
-  THIRD_PARTY_LDFLAGS+="-lglog -lgflags -lboost_context -lfmt -lssl -lcrypto"
+  THIRD_PARTY_LDFLAGS+="-lglog -lgflags -lboost_context -lfmt -lssl -lcrypto -ldl"
 fi
 
 echo "$THIRD_PARTY_LDFLAGS"
